@@ -1,9 +1,16 @@
 package com.in28minuteschristian.rest.webservices.restfulwebservices.todo;
 
 import java.net.URI;
-import java.util.List;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.LocalDate;
+import com.datastax.driver.core.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.cassandra.core.cql.CqlTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,63 +22,77 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import com.datastax.driver.core.utils.UUIDs;
 
 @CrossOrigin(origins="http://localhost:4200")
 @RestController
 public class TodoJpaResource {
 
-    @Autowired
-    private TodoHardcodedService todoService;
+    private TodoRepository todoRepository;
 
-    @Autowired
-    private TodoJpaRepository todoJpaRepository;
+    CqlTemplate cqlTemplate;
 
-
-    @GetMapping("/jpa/users/{username}/todos")
-    public List<Todo> getAllTodos(@PathVariable String username){
-        return todoJpaRepository.findByUsername(username);
-        //return todoService.findAll();
+    {
+        Session session = Cluster.builder().addContactPoint("localhost").withoutJMXReporting().build().connect("todo");
+        cqlTemplate = new CqlTemplate(session);
     }
 
-    @GetMapping("/jpa/users/{username}/todos/{id}")
-    public Todo getTodo(@PathVariable String username, @PathVariable long id){
-        return todoJpaRepository.findById(id).get();
-        //return todoService.findById(id);
+    @Autowired
+    public TodoJpaResource(TodoRepository todoRepository){
+        this.todoRepository = todoRepository;
+    }
+
+
+    @GetMapping("/users/{username}/todos")
+    public ResponseEntity<?> getAllTodosByUsername(@PathVariable String username){
+        return new ResponseEntity<>(todoRepository.findByUsername(username), HttpStatus.OK);
+    }
+
+    @GetMapping("/users/{username}/todos/{id}")
+    public ResponseEntity<?> getTodo(@PathVariable String username, @PathVariable long id){
+        Optional<Todo> todo = todoRepository.findById(id);
+
+        if (todo.isPresent()) return new ResponseEntity<>(todo.get(), HttpStatus.OK);
+        else return new ResponseEntity<>("No todo with that ID found", HttpStatus.NOT_FOUND);
     }
 
     //DELETE /users/{username}/todos/{id}
-    @DeleteMapping("/jpa/users/{username}/todos/{id}")
-    public ResponseEntity<Void> deleteTodo(
-            @PathVariable String username, @PathVariable long id){
+    @DeleteMapping("/users/{username}/todos/{id}")
+    public ResponseEntity<Void> deleteTodo(@PathVariable String username, @PathVariable long id){
 
-        //Todo todo = todoService.deleteById(id);
-        todoJpaRepository.deleteById(id);
+        todoRepository.deleteById(id);
 
         return ResponseEntity.noContent().build();
         //return ResponseEntity.notFound().build();
     }
 
 
-    //Edit/Update a Todo
+    // Edit/Update
     //PUT /users/{user_name}/todos/{todo_id}
-    @PutMapping("/jpa/users/{username}/todos/{id}")
-    public ResponseEntity<Todo> updateTodo(
+    @PutMapping("/users/{username}/todos/{id}")
+    public ResponseEntity<?> updateTodo(
             @PathVariable String username,
             @PathVariable long id, @RequestBody Todo todo){
+        AtomicReference<Todo> todo1 = new AtomicReference<>();
+        todoRepository.findById(id).ifPresent(todo1::set);
+        if (todo1.get() == null) return new ResponseEntity<>("Todo not found.", HttpStatus.NOT_FOUND);
+        if (todo.getDescription() != null) todo1.get().setDescription(todo.getDescription());
+        if (todo.getTargetDate() != null) todo1.get().setTargetDate(todo.getTargetDate());
+        Todo todoUpdated = todoRepository.save(todo1.get());
 
-        //Todo todoUpdated = todoService.save(todo);
-        Todo todoUpdated = todoJpaRepository.save(todo);
-
-        return new ResponseEntity<Todo>(todo, HttpStatus.OK);
+        return new ResponseEntity<>(todoUpdated, HttpStatus.OK);
     }
 
-    @PostMapping("/jpa/users/{username}/todos")
+    @PostMapping("/users/{username}/todos")
     public ResponseEntity<Void> createTodo(
             @PathVariable String username, @RequestBody Todo todo){
 
-        //Todo createdTodo = todoService.save(todo);
         todo.setUsername(username);
-        Todo createdTodo = todoJpaRepository.save(todo);
+        todo.setId(UUIDs.timeBased());
+        if (todo.getTargetDate() == null) {
+            todo.setTargetDate(LocalDate.fromMillisSinceEpoch(Date.from(Instant.now().plusSeconds(86400)).getTime()));
+        }
+        Todo createdTodo = todoRepository.save(todo);
 
         //Location
         //Get current resource url
@@ -81,5 +102,4 @@ public class TodoJpaResource {
 
         return ResponseEntity.created(uri).build();
     }
-
 }

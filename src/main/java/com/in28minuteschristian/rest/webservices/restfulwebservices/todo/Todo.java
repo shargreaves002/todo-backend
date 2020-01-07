@@ -1,15 +1,28 @@
 package com.in28minuteschristian.rest.webservices.restfulwebservices.todo;
 
-import java.util.Date;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.Indexed;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
+import com.datastax.driver.core.LocalDate;
 
+import java.util.UUID;
+
+@Table
 public class Todo {
-    private long id;
+    @PrimaryKey
+    private UUID id;
+    @Indexed
     private String username;
     private String description;
-    private Date targetDate;
+    @Column("target_date")
+    private LocalDate targetDate;
+    @Column("done")
     private boolean isDone;
 
-    public Todo(long id, String username, String description, Date targetDate, boolean isDone) {
+    public Todo (){}
+
+    public Todo(UUID id, String username, String description, LocalDate targetDate, boolean isDone) {
         this.id = id;
         this.username = username;
         this.description = description;
@@ -17,11 +30,11 @@ public class Todo {
         this.isDone = isDone;
     }
 
-    public long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -41,11 +54,11 @@ public class Todo {
         this.description = description;
     }
 
-    public Date getTargetDate() {
+    public LocalDate getTargetDate() {
         return targetDate;
     }
 
-    public void setTargetDate(Date targetDate) {
+    public void setTargetDate(LocalDate targetDate) {
         this.targetDate = targetDate;
     }
 
@@ -67,8 +80,6 @@ public class Todo {
         if (getClass() != obj.getClass())
             return false;
         Todo other = (Todo) obj;
-        if (id != other.id)
-            return false;
-        return true;
+        return id == other.id;
     }
 }
