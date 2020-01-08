@@ -1,8 +1,7 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.controller;
+package com.example.todo.controller;
 
-import com.in28minuteschristian.rest.webservices.restfulwebservices.model.User;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.repository.UserRepository;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.service.UserService;
+import com.example.todo.model.User;
+import com.example.todo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

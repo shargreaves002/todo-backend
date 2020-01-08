@@ -1,4 +1,4 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.controller;
+package com.example.todo.controller;
 
 import java.net.URI;
 import java.time.Instant;
@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.Session;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.model.Todo;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.repository.TodoRepository;
+import com.example.todo.model.Todo;
+import com.example.todo.repository.TodoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.cassandra.core.cql.CqlTemplate;
 import org.springframework.http.HttpStatus;

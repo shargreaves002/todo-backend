@@ -1,4 +1,4 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.jwt;
+package com.example.todo.jwt;
 
 import java.io.IOException;
 import java.io.Serializable;

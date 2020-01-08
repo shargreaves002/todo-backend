@@ -1,12 +1,12 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.jwt.resource;
+package com.example.todo.jwt.resource;
 
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.in28minuteschristian.rest.webservices.restfulwebservices.jwt.JwtTokenUtil;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.model.User;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.service.UserService;
+import com.example.todo.jwt.JwtTokenUtil;
+import com.example.todo.model.User;
+import com.example.todo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -16,7 +16,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
