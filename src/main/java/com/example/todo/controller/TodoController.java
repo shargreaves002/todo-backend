@@ -1,104 +1,96 @@
 package com.example.todo.controller;
 
 import java.net.URI;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.LocalDate;
-import com.datastax.driver.core.Session;
+import com.example.todo.jwt.JwtTokenUtil;
 import com.example.todo.model.Todo;
-import com.example.todo.repository.TodoRepository;
+import com.example.todo.service.TodoService;
+import com.example.todo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.cassandra.core.cql.CqlTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.datastax.driver.core.utils.UUIDs;
 
-@CrossOrigin(origins="http://localhost:4200")
+@CrossOrigin(origins="http://localhost:3000")
 @RestController
 public class TodoController {
 
-    private TodoRepository todoRepository;
-
-    CqlTemplate cqlTemplate;
-
-    {
-        Session session = Cluster.builder().addContactPoint("localhost").withoutJMXReporting().build().connect("todo");
-        cqlTemplate = new CqlTemplate(session);
-    }
+    private TodoService todoService;
+    private JwtTokenUtil jwtTokenUtil;
+    private UserService userService;
 
     @Autowired
-    public TodoController(TodoRepository todoRepository){
-        this.todoRepository = todoRepository;
+    public TodoController(TodoService todoService, JwtTokenUtil jwtTokenUtil, UserService userService){
+        this.todoService = todoService;
+        this.jwtTokenUtil = jwtTokenUtil;
+        this.userService = userService;
     }
 
 
     @GetMapping("/users/{username}/todos")
-    public ResponseEntity<?> getAllTodosByUsername(@PathVariable String username){
-        return new ResponseEntity<>(todoRepository.findByUsername(username), HttpStatus.OK);
+    public ResponseEntity<?> getAllTodosByUsername(@RequestHeader(name = "authorization") String token, @PathVariable String username){
+        UserDetails user = userService.loadUserByUsername(username);
+        if (jwtTokenUtil.validateToken(token.substring(7), user))
+            return new ResponseEntity<>(todoService.findByUsername(username), HttpStatus.OK);
+        else
+            return new ResponseEntity<>("You are not authorized.", HttpStatus.FORBIDDEN);
     }
 
     @GetMapping("/users/{username}/todos/{id}")
-    public ResponseEntity<?> getTodo(@PathVariable String username, @PathVariable long id){
-        Optional<Todo> todo = todoRepository.findById(id);
-
-        if (todo.isPresent()) return new ResponseEntity<>(todo.get(), HttpStatus.OK);
-        else return new ResponseEntity<>("No model with that ID found", HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> getTodo(@RequestHeader(name = "authorization") String token, @PathVariable String username, @PathVariable long id){
+        UserDetails user = userService.loadUserByUsername(username);
+        if (jwtTokenUtil.validateToken(token.substring(7), user)){
+            Optional<Todo> todo = todoService.findById(id);
+            if (todo.isPresent()){
+                return new ResponseEntity<>(todo.get(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("No todo with that ID found", HttpStatus.NOT_FOUND);
+            }
+        } else {
+            return new ResponseEntity<>("You are not authorized.", HttpStatus.FORBIDDEN);
+        }
     }
 
     //DELETE /users/{username}/todos/{id}
     @DeleteMapping("/users/{username}/todos/{id}")
-    public ResponseEntity<Void> deleteTodo(@PathVariable String username, @PathVariable long id){
-
-        todoRepository.deleteById(id);
-
-        return ResponseEntity.noContent().build();
-        //return ResponseEntity.notFound().build();
+    public ResponseEntity<?> deleteTodo(@RequestHeader(name = "authorization") String token, @PathVariable String username, @PathVariable long id){
+        UserDetails user = userService.loadUserByUsername(username);
+        if (jwtTokenUtil.validateToken(token.substring(7), user)){
+            todoService.deleteById(id);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+        } else {
+            return new ResponseEntity<>("You are not authorized.", HttpStatus.FORBIDDEN);
+        }
     }
 
 
     // Edit/Update
     //PUT /users/{user_name}/todos/{todo_id}
     @PutMapping("/users/{username}/todos/{id}")
-    public ResponseEntity<?> updateTodo(
-            @PathVariable String username,
-            @PathVariable long id, @RequestBody Todo todo){
-        AtomicReference<Todo> todo1 = new AtomicReference<>();
-        todoRepository.findById(id).ifPresent(todo1::set);
-        if (todo1.get() == null) return new ResponseEntity<>("Todo not found.", HttpStatus.NOT_FOUND);
-        if (todo.getDescription() != null) todo1.get().setDescription(todo.getDescription());
-        if (todo.getTargetDate() != null) todo1.get().setTargetDate(todo.getTargetDate());
-        Todo todoUpdated = todoRepository.save(todo1.get());
-
-        return new ResponseEntity<>(todoUpdated, HttpStatus.OK);
+    public ResponseEntity<?> updateTodo(@RequestHeader(name = "authorization") String token,
+                                        @PathVariable String username,
+                                        @PathVariable long id,
+                                        @RequestBody Todo todo){
+        UserDetails user = userService.loadUserByUsername(username);
+        if (jwtTokenUtil.validateToken(token.substring(7), user)) {
+            if (todoService.update(id, todo) != null) {
+                return new ResponseEntity<>(todoService.update(id, todo), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Todo not found.", HttpStatus.NOT_FOUND);
+            }
+        } else {
+            return new ResponseEntity<>("You are not authorized.", HttpStatus.FORBIDDEN);
+        }
     }
 
     @PostMapping("/users/{username}/todos")
     public ResponseEntity<Void> createTodo(
             @PathVariable String username, @RequestBody Todo todo){
 
-        todo.setUsername(username);
-        todo.setId(UUIDs.timeBased());
-        if (todo.getTargetDate() == null) {
-            todo.setTargetDate(LocalDate.fromMillisSinceEpoch(Date.from(Instant.now().plusSeconds(86400)).getTime()));
-        }
-        Todo createdTodo = todoRepository.save(todo);
+        Todo createdTodo = todoService.create(todo, username);
 
-        //Location
-        //Get current resource url
-        ///{id}
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(createdTodo.getId()).toUri();
 
