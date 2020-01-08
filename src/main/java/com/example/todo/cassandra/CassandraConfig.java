@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.cassandra.config.*;
 import org.springframework.data.cassandra.core.convert.CassandraConverter;
 import org.springframework.data.cassandra.core.convert.MappingCassandraConverter;
-import org.springframework.data.cassandra.core.cql.keyspace.CreateKeyspaceSpecification;
 import org.springframework.data.cassandra.core.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
 
@@ -91,11 +90,4 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
 
         return Collections.singletonList(script);
     }
-
-    /*@Override
-    protected List<CreateKeyspaceSpecification> getKeyspaceCreations() {
-        CreateKeyspaceSpecification keyspace = CreateKeyspaceSpecification.createKeyspace("todo")
-                .withSimpleReplication(1).ifNotExists();
-        return Collections.singletonList(keyspace);
-    }*/
 }

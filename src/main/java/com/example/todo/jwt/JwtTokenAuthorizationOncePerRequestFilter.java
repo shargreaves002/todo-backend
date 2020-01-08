@@ -24,14 +24,16 @@ public class JwtTokenAuthorizationOncePerRequestFilter extends OncePerRequestFil
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-
     @Value("${jwt.http.request.header}")
     private String tokenHeader;
+    private UserService userService;
+    private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    public JwtTokenAuthorizationOncePerRequestFilter(UserService userService, JwtTokenUtil jwtTokenUtil) {
+        this.userService = userService;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
