@@ -1,8 +1,8 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.service;
+package com.example.todo.service;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.model.User;
-import com.in28minuteschristian.rest.webservices.restfulwebservices.repository.UserRepository;
+import com.example.todo.model.User;
+import com.example.todo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

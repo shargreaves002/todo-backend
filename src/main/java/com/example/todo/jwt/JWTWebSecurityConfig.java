@@ -1,6 +1,6 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.jwt;
+package com.example.todo.jwt;
 
-import com.in28minuteschristian.rest.webservices.restfulwebservices.service.UserService;
+import com.example.todo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

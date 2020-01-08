@@ -1,4 +1,4 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.jwt.resource;
+package com.example.todo.jwt.resource;
 
 import java.io.Serializable;
 

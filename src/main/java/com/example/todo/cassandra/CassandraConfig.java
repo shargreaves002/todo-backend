@@ -1,4 +1,4 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.cassandra;
+package com.example.todo.cassandra;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
