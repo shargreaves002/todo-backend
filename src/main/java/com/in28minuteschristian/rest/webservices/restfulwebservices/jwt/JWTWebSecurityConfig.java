@@ -1,5 +1,6 @@
 package com.in28minuteschristian.rest.webservices.restfulwebservices.jwt;
 
+import com.in28minuteschristian.rest.webservices.restfulwebservices.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +14,6 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -27,7 +27,7 @@ public class JWTWebSecurityConfig extends WebSecurityConfigurerAdapter {
     private JwtUnAuthorizedResponseAuthenticationEntryPoint jwtUnAuthorizedResponseAuthenticationEntryPoint;
 
     @Autowired
-    private UserDetailsService jwtInMemoryUserDetailsService;
+    private UserService userService;
 
     @Autowired
     private JwtTokenAuthorizationOncePerRequestFilter jwtAuthenticationTokenFilter;
@@ -37,7 +37,7 @@ public class JWTWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(jwtInMemoryUserDetailsService).passwordEncoder(passwordEncoderBean());
+        auth.userDetailsService(userService).passwordEncoder(passwordEncoderBean());
     }
 
     @Bean
@@ -68,8 +68,8 @@ public class JWTWebSecurityConfig extends WebSecurityConfigurerAdapter {
         webSecurity.ignoring().antMatchers(HttpMethod.POST, authenticationPath)
                 .antMatchers(HttpMethod.OPTIONS, "/**")
                 .and().ignoring()
-                .antMatchers(HttpMethod.GET, "/" // Other Stuff You want to Ignore
+                .antMatchers(HttpMethod.GET, "/"
                 ).and().ignoring()
-                .antMatchers("/h2-console/**/**");// Should not be done in Production!
+                .antMatchers(HttpMethod.POST, "/signup");
     }
 }

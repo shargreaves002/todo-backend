@@ -1,4 +1,4 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.todo;
+package com.in28minuteschristian.rest.webservices.restfulwebservices.controller;
 
 import java.net.URI;
 import java.time.Instant;
@@ -9,6 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.Session;
+import com.in28minuteschristian.rest.webservices.restfulwebservices.model.Todo;
+import com.in28minuteschristian.rest.webservices.restfulwebservices.repository.TodoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.cassandra.core.cql.CqlTemplate;
 import org.springframework.http.HttpStatus;
@@ -26,7 +28,7 @@ import com.datastax.driver.core.utils.UUIDs;
 
 @CrossOrigin(origins="http://localhost:4200")
 @RestController
-public class TodoJpaResource {
+public class TodoController {
 
     private TodoRepository todoRepository;
 
@@ -38,7 +40,7 @@ public class TodoJpaResource {
     }
 
     @Autowired
-    public TodoJpaResource(TodoRepository todoRepository){
+    public TodoController(TodoRepository todoRepository){
         this.todoRepository = todoRepository;
     }
 
@@ -53,7 +55,7 @@ public class TodoJpaResource {
         Optional<Todo> todo = todoRepository.findById(id);
 
         if (todo.isPresent()) return new ResponseEntity<>(todo.get(), HttpStatus.OK);
-        else return new ResponseEntity<>("No todo with that ID found", HttpStatus.NOT_FOUND);
+        else return new ResponseEntity<>("No model with that ID found", HttpStatus.NOT_FOUND);
     }
 
     //DELETE /users/{username}/todos/{id}

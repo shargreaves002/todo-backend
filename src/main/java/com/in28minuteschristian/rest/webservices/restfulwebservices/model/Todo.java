@@ -1,4 +1,4 @@
-package com.in28minuteschristian.rest.webservices.restfulwebservices.todo;
+package com.in28minuteschristian.rest.webservices.restfulwebservices.model;
 
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.Indexed;

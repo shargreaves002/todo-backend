@@ -5,10 +5,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.cassandra.config.*;
 import org.springframework.data.cassandra.core.convert.CassandraConverter;
 import org.springframework.data.cassandra.core.convert.MappingCassandraConverter;
+import org.springframework.data.cassandra.core.cql.keyspace.CreateKeyspaceSpecification;
 import org.springframework.data.cassandra.core.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
 
-import java.util.Objects;
+import java.util.*;
 
 @Configuration
 @EnableCassandraRepositories
@@ -36,7 +37,7 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
 
     @Override
     public String[] getEntityBasePackages() {
-        String basePackages = "com.in28minuteschristian.rest.webservice.todo";
+        String basePackages = "com.in28minuteschristian.rest.webservices.restfulwebservices.model";
         return new String[] {basePackages};
     }
 
@@ -63,7 +64,7 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        session.setSchemaAction(SchemaAction.CREATE);
+        session.setSchemaAction(SchemaAction.CREATE_IF_NOT_EXISTS);
 
         return session;
     }
@@ -80,4 +81,21 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
     public CassandraConverter converter() throws ClassNotFoundException {
         return new MappingCassandraConverter(mappingContext());
     }
+
+    @Override
+    protected List<String> getStartupScripts() {
+
+        String script = "CREATE KEYSPACE IF NOT EXISTS todo "
+                + "WITH durable_writes = true "
+                + "AND replication = { 'class' : 'SimpleStrategy, 'replication_factor' : 1 };";
+
+        return Collections.singletonList(script);
+    }
+
+    /*@Override
+    protected List<CreateKeyspaceSpecification> getKeyspaceCreations() {
+        CreateKeyspaceSpecification keyspace = CreateKeyspaceSpecification.createKeyspace("todo")
+                .withSimpleReplication(1).ifNotExists();
+        return Collections.singletonList(keyspace);
+    }*/
 }
