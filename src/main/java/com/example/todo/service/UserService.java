@@ -47,22 +47,29 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
-        return userRepository.findByUsername(s);
+        UserDetails user = userRepository.findByUsername(s);
+        if (user == null)
+            throw new UsernameNotFoundException("This username was not found.");
+
+        return user;
     }
 
     public Response updateUser(User user) {
         Optional<User> user1 = userRepository.findById(user.getId());
         Response response = new Response();
         user1.ifPresent(v -> {
-            if (user.getUsername() == null || userRepository.findByUsername(user.getUsername()) == null) {
-                if (user.getUsername() != null) {
-                    todoService.updateUsername(v.getUsername(), user.getUsername());
-                    v.setUsername(user.getUsername());
-                }
-                if (user.getPassword() != null) v.setPassword(user.getPassword());
-                if (user.getRole() != null) v.setRole(user.getRole());
+            if (user.getUsername() != null) {
+                todoService.updateUsername(v.getUsername(), user.getUsername());
+                v.setUsername(user.getUsername());
+            }
+            if (user.getPassword() != null) v.setPassword(user.getPassword());
+            if (user.getRole() != null) v.setRole(user.getRole());
+
+            if (!user.equals(user1.get())) {
                 userRepository.save(v);
                 response.setData(v, new JwtTokenResponse(jwtTokenUtil.generateToken(v)));
+            } else {
+                response.setData("All user details remain unchanged.");
             }
         });
         return response;
