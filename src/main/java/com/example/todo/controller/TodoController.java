@@ -75,8 +75,9 @@ public class TodoController {
                                         @RequestBody Todo todo){
         UserDetails user = userService.loadUserByUsername(username);
         if (jwtTokenUtil.validateToken(token.substring(7), user)) {
-            if (todoService.update(id, todo) != null) {
-                return new ResponseEntity<>(todoService.update(id, todo), HttpStatus.OK);
+            Optional<Todo> todo1 = todoService.update(id, todo);
+            if (todo1.isPresent()) {
+                return new ResponseEntity<>(todo1.get(), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Todo not found.", HttpStatus.NOT_FOUND);
             }
